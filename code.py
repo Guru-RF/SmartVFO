@@ -10,6 +10,8 @@ from adafruit_midi.note_off import NoteOff
 from adafruit_midi.note_on import NoteOn
 from rainbowio import colorwheel
 
+usb_midi.set_names(streaming_interface_name="SmartVFO", audio_control_interface_name="SmartVFO", in_jack_name="SmartVFO", out_jack_name="SmartVFO")
+
 # setup midi
 midi = adafruit_midi.MIDI(
         midi_in=usb_midi.ports[0], in_channel=0, midi_out=usb_midi.ports[1], out_channel=0 )

@@ -1,26 +1,18 @@
-import usb_cdc
-import board
 import storage
-from digitalio import DigitalInOut, Direction, Pull
+import supervisor
+import usb_cdc
+import usb_midi
 
-btn = DigitalInOut(board.GP19)
-btn.direction = Direction.INPUT
-btn.pull = Pull.UP
 
-# Disable devices only if btn is not pressed.
-if btn.value is True:
-    print(f"boot: button not pressed, disabling drive")
-    storage.disable_usb_drive()
-    storage.remount("/", readonly=False)
+supervisor.set_usb_identification("RF.Guru", "SmartVFO")
 
-    usb_cdc.enable(console=False, data=False)
-else:
-    print(f"boot: button pressed, enable console, enabling drive")
+usb_midi.set_names(streaming_interface_name="SmartVFO", audio_control_interface_name="SmartVFO", in_jack_name="SmartVFO", out_jack_name="SmartVFO")
+usb_midi.enable()
 
-    usb_cdc.enable(console=True, data=False)
+usb_cdc.enable(console=False, data=True)
 
-    new_name = "SmartVFO"
-    storage.remount("/", readonly=False)
-    m = storage.getmount("/")
-    m.label = new_name
-    storage.remount("/", readonly=True)
+new_name = "SmartVFO"
+storage.remount("/", readonly=False)
+m = storage.getmount("/")
+m.label = new_name
+storage.remount("/", readonly=True)
