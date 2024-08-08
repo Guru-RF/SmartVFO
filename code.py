@@ -376,8 +376,6 @@ async def vfo_runner(w):
             start = time.monotonic()
 
             if position > last_position:
-                # up
-                #                wait = True
                 if wheel == 255:
                     wheel = 0
                 wheel = wheel + 1
@@ -390,8 +388,6 @@ async def vfo_runner(w):
                     midi.send(NoteOn(30, 0))
                     midi.send(NoteOff(30, 0))
             elif position < last_position:
-                # down
-                #                wait = True
                 if wheel == 0:
                     wheel = 255
                 wheel = wheel - 1
@@ -405,32 +401,39 @@ async def vfo_runner(w):
                     midi.send(NoteOff(31, 0))
             last_position = position
         else:
-            # speedjump = 25
             jumped = False
-        # if wait is False:
-        # RGBled1.color = (0, 0, 255)
         if buttonENC.value is False:
             RGBled1.color = (255, 0, 0)
             midi.send(NoteOn(32, 0))
             midi.send(NoteOff(32, 0))
-            time.sleep(0.5)
+            await asyncio.sleep(0.5)
         if buttonBOT.value is False:
             RGBled1.color = (255, 0, 0)
             midi.send(NoteOn(33, 0))
             midi.send(NoteOff(33, 0))
-            time.sleep(0.5)
+            await asyncio.sleep(0.5)
         if buttonTOP.value is False:
             RGBled1.color = (255, 0, 0)
             midi.send(NoteOn(34, 0))
             midi.send(NoteOff(34, 0))
-            time.sleep(0.5)
+            await asyncio.sleep(0.5)
 
 
-#        if wait is True:
-#            waittimer = waittimer + 1
-#            if waittimer == 10000:
-#                waittimer = 0
-#                wait = False
+async def paddle_runner():
+    print("Paddle task")
+    if config.CW is False:
+        while True:
+            await asyncio.sleep(0)
+            if dit_key.value is False:
+                RGBled1.color = (0, 255, 0)
+                midi.send(NoteOn(35, 0))
+            else:
+                midi.send(NoteOff(35, 0))
+            if dah_key.value is False:
+                RGBled1.color = (0, 0, 255)
+                midi.send(NoteOn(36, 0))
+            else:
+                midi.send(NoteOff(36, 0))
 
 
 async def serials_runner():
@@ -441,11 +444,17 @@ async def serials_runner():
 
 
 async def main():
-    iambic = Iambic(dit_key, dah_key)
-    iambic_task = asyncio.create_task(iambic_runner(iambic, w))
-    serials_task = asyncio.create_task(serials_runner())
-    vfo_task = asyncio.create_task(vfo_runner(w))
-    await asyncio.gather(iambic_task, serials_task, vfo_task)
+    if config.CW is True:
+        iambic = Iambic(dit_key, dah_key)
+        iambic_task = asyncio.create_task(iambic_runner(iambic, w))
+        serials_task = asyncio.create_task(serials_runner())
+        vfo_task = asyncio.create_task(vfo_runner(w))
+        await asyncio.gather(iambic_task, serials_task, vfo_task)
+    else:
+        serials_task = asyncio.create_task(serials_runner())
+        paddle_task = asyncio.create_task(paddle_runner())
+        vfo_task = asyncio.create_task(vfo_runner(w))
+        await asyncio.gather(serials_task, vfo_task, paddle_task)
 
 
 asyncio.run(main())

@@ -1,3 +1,5 @@
+import board
+import digitalio
 import storage
 import supervisor
 import usb_cdc
@@ -13,10 +15,18 @@ usb_midi.set_names(
 )
 usb_midi.enable()
 
-usb_cdc.enable(console=True, data=True)
+buttonENC = digitalio.DigitalInOut(board.GP19)
+buttonENC.direction = digitalio.Direction.INPUT
+buttonENC.pull = digitalio.Pull.UP
 
-new_name = "SmartVFO"
-storage.remount("/", readonly=False)
-m = storage.getmount("/")
-m.label = new_name
-storage.remount("/", readonly=True)
+usb_cdc.enable(console=False, data=True)
+
+if buttonENC.value is True:
+    storage.disable_usb_drive()
+    storage.remount("/", readonly=False)
+else:
+    new_name = "SmartVFO"
+    storage.remount("/", readonly=False)
+    m = storage.getmount("/")
+    m.label = new_name
+    storage.remount("/", readonly=True)
