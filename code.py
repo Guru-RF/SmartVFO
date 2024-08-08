@@ -55,7 +55,7 @@ midi = adafruit_midi.MIDI(
 )
 
 RGBled1 = adafruit_rgbled.RGBLED(board.GP3, board.GP4, board.GP5, invert_pwm=True)
-RGBled1.color = (0, 255, 0)
+RGBled1.color = (0, 0, 255)
 
 encoder = rotaryio.IncrementalEncoder(board.GP17, board.GP16)
 
@@ -421,19 +421,27 @@ async def vfo_runner(w):
 
 async def paddle_runner():
     print("Paddle task")
+    dit_state = False
+    dah_state = False
     if config.CW is False:
         while True:
             await asyncio.sleep(0)
             if dit_key.value is False:
                 RGBled1.color = (0, 255, 0)
                 midi.send(NoteOn(35, 0))
-            else:
+                dit_state = True
+            elif dit_state is True:
+                RGBled1.color = (128, 128, 128)
                 midi.send(NoteOff(35, 0))
+                dit_state = False
             if dah_key.value is False:
-                RGBled1.color = (0, 0, 255)
+                RGBled1.color = (255, 0, 0)
                 midi.send(NoteOn(36, 0))
-            else:
+                dah_state = True
+            elif dah_state is True:
+                RGBled1.color = (128, 128, 128)
                 midi.send(NoteOff(36, 0))
+                dah_state = False
 
 
 async def serials_runner():
